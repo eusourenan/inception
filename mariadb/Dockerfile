@@ -1,0 +1,21 @@
+FROM debian:oldstable
+
+ARG WP_ADMIN_USER
+ARG WP_ADMIN_PASS
+ARG WP_DATABASE
+
+RUN apt-get update -y \
+&&  apt-get upgrade -y \
+&&  apt-get install mariadb-server -y
+
+# Configure MariaDB to enable networking and skip binding to a specific address 
+RUN echo "[mysqld] \n\
+skip-networking=0 \n\
+skip-bind-address" > /etc/mysql/my.cnf
+
+COPY conf/ /usr/bin/
+RUN chmod +x /usr/bin/setup.sh
+
+RUN service mariadb start && /usr/bin/setup.sh
+
+CMD ["mysqld_safe"]

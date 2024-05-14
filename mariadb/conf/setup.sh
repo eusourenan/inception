@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+service mariadb start
+
+mariadb -u root -e \
+"CREATE DATABASE IF NOT EXISTS $WP_DATABASE; \
+CREATE USER '$WP_ADMIN_USER'@'%' IDENTIFIED BY '$WP_ADMIN_PASS'; \
+GRANT ALL ON $WP_DATABASE.* TO '$WP_ADMIN_USER'@'%'; \
+FLUSH PRIVILEGES;"

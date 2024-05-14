@@ -1,0 +1,41 @@
+#version: '3.8' # Boas práticas. Indica qual
+
+services:
+  debian:
+    # Definições
+    image: potato:14.0 # Docker run com isso aqui
+    container_name: batatinha # O nome do meu container é diferenciado
+    
+    ## Quando ele for buildar, vai parssar por aqui, papai
+    build:
+      context: ./ # Aonde está o dockerfile para esse serviço específico
+
+    # Persistência, meu caro
+    volumes:
+      # Precisa ser o menos depois nome_do_volume:caminho_que_você_quer_salvar_do_container
+      - voluminho:/bin # Coloco o diretório para onde será salvo os bangs dos coisados, mas é de acordo com os volumes lá em baixo
+    
+    # Definições de rede para emocionar os corações
+    networks: # definido lá em baixo
+     - rede
+
+    #restart: always #mantendo o loop infinito do container
+
+
+volumes:
+  voluminho: # O nome do volume
+    driver: local # salva nessa máquina aqui ó, tiozão
+    driver_opts: # Opção do Silvio Santos
+      device: /home/user42/Desktop/pasta # A pasta tem que existir. Ela fica como roor created, só Deus sabe como apagar
+      type: none #
+      o: bind #
+
+# volumes:
+#   wordpress_volume:
+#     driver_opts:
+#       device: /home/user42/Desktop/pasta
+#       type: none
+#       o: bind
+
+networks:
+  rede:
