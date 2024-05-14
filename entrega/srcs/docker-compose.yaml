@@ -1,0 +1,118 @@
+version: '3.8'
+
+networks:
+  inception:
+    name: inception
+    driver: bridge
+
+
+
+volumes:
+  wordpress_volume:
+    driver: local
+    name: wordpress_volume
+    driver_opts:
+      o: bind
+      type: none
+      device: /home/${LOGIN}/data/wordpress
+
+  mariadb_volume:
+    driver: local
+    name: mariadb_volume
+    driver_opts:
+      o: bind
+      type: none
+      device: /home/${LOGIN}/data/mariadb
+
+
+
+services:
+  mariadb:
+    image: mariadb:42sp
+    container_name: mariadb
+
+    build:
+      context: requirements/mariadb
+      args:
+        - ADMIN_NAME=${ADMIN_NAME}
+        - ADMIN_PASSWORD=${ADMIN_PASSWORD}
+        - DATABASE=${DATABASE}
+
+    environment:
+      - ADMIN_NAME
+      - ADMIN_PASSWORD
+      - DATABASE
+
+    expose:
+      - 3306
+
+    volumes:
+      - mariadb_volume:/var/lib/mysql
+
+    networks:
+      - inception
+
+    restart: always
+
+  wordpress:
+    depends_on:
+      - mariadb
+
+    image: wordpress:42sp
+    container_name: wordpress
+
+    build:
+      context: requirements/wordpress
+      args:
+        - DATABASE=${DATABASE}
+        - TITLE=${TITLE}
+        - ADMIN_NAME=${ADMIN_NAME}
+        - ADMIN_PASSWORD=${ADMIN_PASSWORD}
+        - ADMIN_EMAIL=${ADMIN_EMAIL}
+        - USER_NAME=${USER_NAME}
+        - USER_PASSWORD=${USER_PASSWORD}
+        - USER_EMAIL=${USER_EMAIL}
+
+    environment:
+      - DATABASE
+      - TITLE
+      - ADMIN_NAME
+      - ADMIN_PASSWORD
+      - ADMIN_EMAIL
+      - USER_NAME
+      - USER_PASSWORD
+      - USER_EMAIL
+
+    expose:
+      - 9000
+    
+    volumes:
+      - wordpress_volume:/var/www/html
+
+    networks:
+      - inception
+
+    restart: always
+
+  nginx:
+    image: nginx:42sp
+    container_name: nginx
+
+    build:
+      context: requirements/nginx
+      args:
+        - LOGIN=${LOGIN}
+
+    environment:
+      - LOGIN
+
+    ports:
+      - 443:443
+
+    volumes:
+      - wordpress_volume:/var/www/html
+
+    networks:
+      - inception
+
+    restart: always
