@@ -1,30 +1,37 @@
 #!/bin/bash
 
-if [ -f /var/www/html/wp-config-sample.php ]; then
-	rm -rf /var/www/html/wp-config-sample.php
-	rm -fr /var/www/html/index.html
+if [ -f /var/www/wordpress/wp-config-sample.php ]; then
+	rm -rf /var/www/wordpress/wp-config-sample.php
+
+	wp --allow-root config create \
+		--dbname="$DB_NAME" \
+		--dbuser="$ADMIN_NAME" \
+		--dbpass="$ADMIN_PASSWORD" \
+		--dbhost=mariadb \
+		--dbprefix="wp_"
+
 	wp core install --allow-root \
-		--path=/var/www/html \
+		--path=/var/www/wordpress \
 		--title="42SP InceptionHELL" \
-		--url=$SERVER_NAME \
-		--admin_user=$ROOT_USER \
-		--admin_password=$ROOT_PW \
-		--admin_email=$ROOT_MAIL
+		--url=$DOMAIN \
+		--admin_user=$ADMIN_NAME \
+		--admin_password=$ADMIN_PASSWORD \
+		--admin_email=$ADMIN_EMAIL
 
 	wp user create --allow-root	\
-		--path=/var/www/html \
-		"$WP_USER" "$WP_MAIL" \
-		--user_pass=$WP_PW \
+		--path=/var/www/wordpress \
+		"$USER_NAME" "$USER_EMAIL" \
+		--user_pass=$USER_PASSWORD \
 		--role='author'
 fi
 
-php-fpm7.4 -F
+exec php-fpm7.4 -F
 
 
 
 # #!/usr/bin/env bash
 
-# # Enable the expansion of aliases in the shell script.
+# Enable the expansion of aliases in the shell script.
 # shopt -s expand_aliases
 
 # # This script sets up an alias for the 'wp' command with the '--allow-root' option.

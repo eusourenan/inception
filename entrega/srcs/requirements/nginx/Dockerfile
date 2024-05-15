@@ -1,15 +1,14 @@
 FROM debian:oldstable
 
-RUN apt-get update -qy && apt-get upgrade -qy \
-    && apt-get install nginx openssl -qy
+RUN apt update -y && apt upgrade -y \
+    && apt install nginx openssl -y
 
-RUN openssl req -batch -x509 \
-    -sha256 -nodes -newkey rsa:4096 -days 365 \
-    -out /etc/ssl/certs/nginx-selfsigned.crt \
-    -keyout /etc/ssl/private/nginx-selfsigned.key \
-    -subj "/O=42sp/OU=42 Sao Paulo/CN=42sp.org.br"
+RUN openssl req -batch -x509 -sha256 -nodes -newkey rsa:2048 -days 365 \
+	-keyout /etc/ssl/private/private.key \
+	-out /etc/ssl/certs/certificate.crt \
+	-subj "/C=BR/ST=SP/L=Sao Paulo/O=42sp/CN=rleite-s.42.fr"
 
-COPY ./conf/nginx.conf /etc/nginx/conf.d/
+COPY ./conf/nginx.conf /etc/nginx/conf.d
 
 # EXPOSE 443
 

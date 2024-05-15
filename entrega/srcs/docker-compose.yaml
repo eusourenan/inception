@@ -3,26 +3,26 @@ version: '3.8'
 networks:
   inception:
     name: inception
-    driver: bridge
+    # driver: bridge
 
 
 
 volumes:
   wordpress_volume:
-    driver: local
+    # driver: local
     name: wordpress_volume
     driver_opts:
       o: bind
       type: none
-      device: /home/${LOGIN}/data/wordpress
+      device: /home/rleite-s/data/wordpress
 
   mariadb_volume:
-    driver: local
+    # driver: local
     name: mariadb_volume
     driver_opts:
       o: bind
       type: none
-      device: /home/${LOGIN}/data/mariadb
+      device: /home/rleite-s/data/mariadb
 
 
 
@@ -30,41 +30,42 @@ services:
   mariadb:
     image: mariadb:42sp
     container_name: mariadb
-
+    env_file:
+      - .env
     build:
       context: requirements/mariadb
       args:
         - ADMIN_NAME=${ADMIN_NAME}
         - ADMIN_PASSWORD=${ADMIN_PASSWORD}
-        - DATABASE=${DATABASE}
-
+        - DB_NAME=${DB_NAME}
     environment:
       - ADMIN_NAME
       - ADMIN_PASSWORD
-      - DATABASE
-
-    expose:
-      - 3306
-
+      - DB_NAME
     volumes:
       - mariadb_volume:/var/lib/mysql
-
     networks:
       - inception
-
-    restart: always
+    restart: on-failure
+    expose:
+      - 3306
+    healthcheck:
+      test: mysqladmin ping -h localhost -u root
+      interval: 3s
+      timeout: 3s
+      retries: 5
 
   wordpress:
     depends_on:
       - mariadb
-
     image: wordpress:42sp
     container_name: wordpress
-
+    env_file:
+      - .env
     build:
       context: requirements/wordpress
       args:
-        - DATABASE=${DATABASE}
+        - DB_NAME=${DB_NAME}
         - TITLE=${TITLE}
         - ADMIN_NAME=${ADMIN_NAME}
         - ADMIN_PASSWORD=${ADMIN_PASSWORD}
@@ -72,9 +73,8 @@ services:
         - USER_NAME=${USER_NAME}
         - USER_PASSWORD=${USER_PASSWORD}
         - USER_EMAIL=${USER_EMAIL}
-
     environment:
-      - DATABASE
+      - DB_NAME
       - TITLE
       - ADMIN_NAME
       - ADMIN_PASSWORD
@@ -82,17 +82,13 @@ services:
       - USER_NAME
       - USER_PASSWORD
       - USER_EMAIL
-
-    expose:
-      - 9000
-    
     volumes:
-      - wordpress_volume:/var/www/html
-
+      - wordpress_volume:/var/www/wordpress
     networks:
       - inception
-
-    restart: always
+    restart: on-failure
+    expose:
+      - 9000
 
   nginx:
     image: nginx:42sp
@@ -100,19 +96,17 @@ services:
 
     build:
       context: requirements/nginx
-      args:
-        - LOGIN=${LOGIN}
-
-    environment:
-      - LOGIN
 
     ports:
       - 443:443
 
     volumes:
-      - wordpress_volume:/var/www/html
+      - wordpress_volume:/var/www/wordpress
 
     networks:
       - inception
 
-    restart: always
+    depends_on:
+      - wordpress
+
+    restart: on-failure

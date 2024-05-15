@@ -8,9 +8,11 @@ DOCKER_COMPOSE_COMMAND=docker-compose -f $(DOCKER_COMPOSE_FILE)
 
 all: config up
 
+# sudo echo '127.0.0.1	$(LOGIN).42.fr' >> /etc/hosts;
 config:
+	@echo oi
 	@if ! grep -q '$(LOGIN)' /etc/hosts; then \
-		sudo echo '127.0.0.0	$(LOGIN).42.fr' >> /etc/hosts; \
+		echo "127.0.0.1 $(LOGIN).42.fr" | sudo tee -a /etc/hosts > /dev/null; \
 	fi
 
 	@if [ ! -d "$(WORDPRESS_DIR)" ]; then \
@@ -22,7 +24,7 @@ config:
 
 up: build
 
-	$(DOCKER_COMPOSE_COMMAND) up -d
+	$(DOCKER_COMPOSE_COMMAND) up # -d
 
 build:
 	$(DOCKER_COMPOSE_COMMAND) build
@@ -41,5 +43,8 @@ clean:
 
 fclean: clean
 	docker system prune --force --all --volumes
+	sudo rm -rf $(WORDPRESS_DIR) $(MARIA_DIR)
+
+re: fclean all
 
 .PHONY: all up config build down ls clean fclean

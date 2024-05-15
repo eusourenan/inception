@@ -2,10 +2,15 @@ FROM debian:oldstable
 
 ARG ADMIN_NAME
 ARG ADMIN_PASSWORD
-ARG DATABASE
+ARG DB_NAME
 
-RUN apt-get update -qy && apt-get upgrade -qy \
-    && apt-get install mariadb-server -qy
+RUN apt update -y && apt upgrade -y \
+    && apt install mariadb-server -y \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN mkdir -p /var/run/mysqld && \
+	chown -R mysql:mysql /var/run/mysqld && \
+	chmod 777 /var/run/mysqld
 
 COPY conf/my.cnf /etc/mysql/my.cnf
 
